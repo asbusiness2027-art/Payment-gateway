@@ -8,7 +8,7 @@ const FLOOR_LIMIT = Number(process.env.OFFLINE_FLOOR_LIMIT || 500); // أقصى 
 const KEY = crypto.scryptSync(process.env.VAULT_KEY || 'dev-only-change-me', 'gw-salt', 32);
 
 const load = () => { try { return JSON.parse(fs.readFileSync(DB, 'utf8')); } catch { return { stan: 0, txs: [], queue: [] }; } };
-const save = d => fs.writeFileSync(DB, JSON.stringify(d, null, 1));
+const save = d => { fs.mkdirSync(path.dirname(DB), { recursive: true }); fs.writeFileSync(DB, JSON.stringify(d, null, 1)); };
 
 // رقم الكارت الكامل بيتشفّر AES-256-GCM وبيتخزن بس لحد ما العملية تتبعت للبنك، وبعدها بيتمسح.
 function seal(obj) {
