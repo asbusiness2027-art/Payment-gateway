@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>بوابة الدفع | لوحة التحكم</title>
+<style>
+:root{--bg:#f4f6f8;--sf:#fff;--ink:#0f1b2d;--mut:#64748b;--ln:#e2e8f0;--ac:#0f766e;--ac2:#115e59;--ok:#047857;--okb:#d1fae5;--no:#b91c1c;--nob:#fee2e2;--wt:#b45309;--wtb:#fef3c7;--sh:0 1px 2px rgba(15,27,45,.06),0 4px 16px rgba(15,27,45,.05);color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0b121c;--sf:#121c2a;--ink:#e8edf4;--mut:#8b9bb0;--ln:#223044;--ac:#2dd4bf;--ac2:#5eead4;--ok:#34d399;--okb:#0f3a2f;--no:#f87171;--nob:#451a1a;--wt:#fbbf24;--wtb:#3f2f0b;--sh:none;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",Tahoma,"Noto Naskh Arabic",system-ui,sans-serif}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:#0a2540;color:#cbd5e1;padding:22px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:1.05rem;margin-bottom:22px}
+.logo i{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#2dd4bf,#0f766e);display:grid;place-items:center;font-style:normal;color:#04302c}
+aside a{display:block;padding:9px 12px;border-radius:8px;color:inherit;text-decoration:none}aside a:hover,aside a.on{background:rgba(255,255,255,.09);color:#fff}
+.env{margin-top:auto;font-size:.8rem;background:rgba(251,191,36,.14);color:#fcd34d;padding:8px 10px;border-radius:8px}
+main{padding:26px clamp(14px,3vw,36px) 60px;max-width:1180px;width:100%}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:1.45rem;margin:0}h2{font-size:1rem;margin:0}
+.sw{display:flex;align-items:center;gap:10px;background:var(--sf);border:1px solid var(--ln);padding:6px 8px 6px 14px;border-radius:999px;box-shadow:var(--sh)}
+.pulse{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px var(--okb)}.off .pulse{background:var(--wt);box-shadow:0 0 0 4px var(--wtb)}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--ln);background:var(--sf);color:var(--ink);padding:7px 14px}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}.p:hover{background:var(--ac2)}
+@media(prefers-color-scheme:dark){button.p{color:#04302c}}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:18px;box-shadow:var(--sh)}
+.k small{color:var(--mut);display:block}.k b{font-size:1.6rem;font-variant-numeric:tabular-nums}
+.cols{display:grid;grid-template-columns:minmax(300px,370px) 1fr;gap:18px;align-items:start}
+.cc{height:170px;border-radius:16px;padding:18px;color:#fff;background:linear-gradient(135deg,#0a2540,#0f766e);display:flex;flex-direction:column;justify-content:space-between;direction:ltr;margin-bottom:6px;box-shadow:0 10px 24px rgba(10,37,64,.25)}
+.cc .n{font:600 1.25rem/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em}.cc .r{display:flex;justify-content:space-between;font-size:.85rem;opacity:.9}
+label{display:block;font-size:.85rem;color:var(--mut);margin:14px 0 5px}
+input{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--ln);border-radius:9px;background:var(--bg);color:var(--ink);direction:ltr;text-align:left}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{border-radius:999px;padding:4px 12px;font-size:.85rem}.tabs .on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:right;padding:11px 8px;border-bottom:1px solid var(--ln);white-space:nowrap}th{color:var(--mut);font-weight:600;font-size:.8rem}
+tbody tr{cursor:pointer}tbody tr:hover{background:var(--bg)}.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:embed}
+.b{padding:2px 10px;border-radius:999px;font-size:.8rem;font-weight:600}
+.approved{background:var(--okb);color:var(--ok)}.declined,.declined_after_offline{background:var(--nob);color:var(--no)}.pending_sync{background:var(--wtb);color:var(--wt)}
+.empty{text-align:center;color:var(--mut);padding:36px 0}
+dialog{border:1px solid var(--ln);border-radius:16px;background:var(--sf);color:var(--ink);padding:22px;width:min(420px,92vw)}dialog::backdrop{background:rgba(10,20,35,.55)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;margin:14px 0}dt{color:var(--mut)}dd{margin:0}
+#toast{position:fixed;bottom:20px;inset-inline:0;margin:auto;width:max-content;max-width:92vw;padding:11px 18px;border-radius:10px;color:#fff;background:var(--ink);display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+@media(max-width:900px){.app{grid-template-columns:1fr}aside{position:static;height:auto;flex-direction:row;align-items:center;padding:12px 14px;overflow-x:auto}.logo{margin:0 10px 0 0}.env{display:none}.kpis{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}}
+</style></head><body>
+<div class="app">
+<aside><div class="logo"><i>◆</i>بوابة الدفع</div><a class="on" href="#">لوحة التحكم</a><a href="#new">عملية جديدة</a><a href="#tx">العمليات</a><div class="env">بيئة تجريبية: لا تُستخدم كروت حقيقية</div></aside>
+<main>
+<div class="top"><h1>نظرة عامة</h1><div class="sw" id="net"><span class="pulse"></span><span id="netT">متصل بالبنك</span><button id="tog">قطع الاتصال</button></div></div>
+<section class="kpis">
+<div class="card k"><small>إجمالي الموافق عليه</small><b id="k1">0</b></div>
+<div class="card k"><small>عدد العمليات</small><b id="k2">0</b></div>
+<div class="card k"><small>نسبة النجاح</small><b id="k3">—</b></div>
+<div class="card k"><small>معلّقة للمزامنة</small><b id="k4">0</b></div></section>
+<div class="cols">
+<section class="card" id="new"><h2>عملية دفع جديدة</h2>
+<div class="cc" style="margin-top:14px"><div class="r"><span id="cb">CARD</span><span>●●</span></div><div class="n" id="cn">•••• •••• •••• ••••</div><div class="r"><span id="cm">MM/YY</span><span id="ca">0.00 EGP</span></div></div>
+<form id="f" autocomplete="off"><label for="pan">رقم الكارت</label><input id="pan" inputmode="numeric" maxlength="23" placeholder="4242 4242 4242 4242" required>
+<div class="row"><div><label for="exp">الانتهاء</label><input id="exp" inputmode="numeric" maxlength="5" placeholder="MM/YY" required></div><div><label for="amt">المبلغ (جنيه)</label><input id="amt" inputmode="decimal" placeholder="150.00" required></div></div>
+<button class="p" style="width:100%;margin-top:18px;padding:12px">تنفيذ الدفع</button></form></section>
+<section class="card" id="tx"><div class="hd"><h2>آخر العمليات</h2><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="tabs" id="tabs"></div><button id="sync">مزامنة المعلّقة</button></div></div>
+<div class="tw"><table><thead><tr><th>الوقت</th><th>الكارت</th><th>المبلغ</th><th>النوع</th><th>الحالة</th></tr></thead><tbody id="tb"></tbody></table></div></section>
+</div></main></div>
+<dialog id="dk"><h2>تسجيل الدخول</h2><p style="color:var(--mut)">أدخل مفتاح API للدخول إلى لوحة التحكم.</p><form id="kf"><input id="key" type="password" placeholder="API Key" required><button class="p" style="width:100%;margin-top:14px;padding:11px">دخول</button></form></dialog>
+<dialog id="dd"><h2>تفاصيل العملية</h2><dl id="dl"></dl><button id="dc" style="width:100%">إغلاق</button></dialog>
+<div id="toast" role="status"></div>
+<script>
+const $=i=>document.getElementById(i),ST={approved:'موافق عليها',declined:'مرفوضة',pending_sync:'معلّقة',declined_after_offline:'مرفوضة بعد المزامنة'};
+const TABS=[['all','الكل'],['approved','موافق'],['pending_sync','معلّقة'],['declined','مرفوض']];
+let key=sessionStorage.getItem('k')||'',data={txs:[],pending:0,online:true},flt='all',tt;
+const mk=(t,x,c)=>{const e=document.createElement(t);if(x!=null)e.textContent=x;if(c)e.className=c;return e};
+function toast(m,bad){const t=$('toast');t.textContent=m;t.style.background=bad?'#b91c1c':'#0f1b2d';t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',3800)}
+async function api(p,m='GET',b){const r=await fetch('/api/'+p,{method:m,headers:{'x-api-key':key,'Content-Type':'application/json'},body:b&&JSON.stringify(b)});if(r.status===401){$('dk').showModal();throw 0}return r.json()}
+const money=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+function render(){const d=data,tx=d.txs,ap=tx.filter(t=>t.status==='approved'),done=tx.filter(t=>t.status!=='pending_sync');
+ $('net').className='sw'+(d.online?'':' off');$('netT').textContent=d.online?'متصل بالبنك':'أوفلاين';$('tog').textContent=d.online?'قطع الاتصال':'إعادة الاتصال';
+ $('k1').textContent=money(ap.reduce((s,t)=>s+t.amount,0))+' ج';$('k2').textContent=tx.length;$('k3').textContent=done.length?Math.round(ap.length/done.length*100)+'%':'—';$('k4').textContent=d.pending;
+ const tabs=$('tabs');tabs.textContent='';TABS.forEach(([v,l])=>{const b=mk('button',l,flt===v?'on':'');b.onclick=()=>{flt=v;render()};tabs.append(b)});
+ const tb=$('tb');tb.textContent='';const rows=tx.filter(t=>flt==='all'||t.status===flt||(flt==='declined'&&t.status==='declined_after_offline'));
+ if(!rows.length){const r=tb.insertRow(),c=r.insertCell();c.colSpan=5;c.className='empty';c.textContent='لا توجد عمليات بعد';return}
+ rows.forEach(t=>{const r=tb.insertRow();r.onclick=()=>detail(t);const s=mk('td');s.append(mk('span',ST[t.status]||t.status,'b '+t.status));
+  r.append(mk('td',new Date(t.createdAt).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})),mk('td',t.brand+' '+t.first6.slice(0,4)+' •• •• '+t.last4,'num'),mk('td',money(t.amount),'num'),mk('td',t.mode==='online'?'أونلاين':'أوفلاين'),s)})}
+function detail(t){const dl=$('dl');dl.textContent='';[['الحالة',ST[t.status]||t.status],['النتيجة',t.message],['المبلغ',money(t.amount)+' '+t.currency],['الكارت',t.brand+' '+t.first6+'••••••'+t.last4],['النوع',t.mode==='online'?'أونلاين':'أوفلاين'],['كود الرد',t.responseCode],['رقم التفويض',t.authCode||'—'],['RRN',t.rrn],['التوقيت',new Date(t.createdAt).toLocaleString('ar-EG')]].forEach(([a,b])=>{dl.append(mk('dt',a),mk('dd',b))});$('dd').showModal()}
+async function load(){try{data=await api('transactions');render()}catch{}}
+$('kf').onsubmit=e=>{e.preventDefault();key=$('key').value;sessionStorage.setItem('k',key);$('dk').close();load()};
+$('dc').onclick=()=>$('dd').close();
+$('tog').onclick=async()=>{await api('network','POST',{online:!data.online});load()};
+$('sync').onclick=async()=>{const r=await api('sync','POST');toast(r.failed?'لا يوجد اتصال، تبقّى '+r.remaining+' معلّقة':'تمت مزامنة '+r.synced+' عملية',!!r.failed);load()};
+$('pan').oninput=e=>{const v=e.target.value.replace(/\D/g,'').slice(0,19);e.target.value=v.replace(/(.{4})/g,'$1 ').trim();
+ $('cn').textContent=(v+'••••••••••••••••').slice(0,16).replace(/(.{4})/g,'$1 ').trim();$('cb').textContent=/^4/.test(v)?'VISA':/^(5[1-5]|2[2-7])/.test(v)?'MASTERCARD':'CARD'};
+$('exp').oninput=e=>{let v=e.target.value.replace(/\D/g,'').slice(0,4);if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);e.target.value=v;$('cm').textContent=v||'MM/YY'};
+$('amt').oninput=e=>{$('ca').textContent=(parseFloat(e.target.value)||0).toFixed(2)+' EGP'};
+$('f').onsubmit=async e=>{e.preventDefault();try{const r=await api('pay','POST',{pan:$('pan').value,expiry:$('exp').value,amount:$('amt').value});
+ if(r.error)return toast(r.error,true);toast(r.tx.message+(r.tx.authCode?' | تفويض '+r.tx.authCode:''),r.tx.status==='declined');
+ if(r.tx){e.target.reset();['cn','cm','ca','cb'].forEach((i,n)=>$(i).textContent=['•••• •••• •••• ••••','MM/YY','0.00 EGP','CARD'][n]);load()}}catch{}};
+key?load():$('dk').showModal();setInterval(()=>key&&load(),10000);
+</script></body></html>
